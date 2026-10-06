@@ -8,7 +8,6 @@ int main(void)
 {
     char *line = NULL;
     size_t len = 0;
-
     char *args[64];
 
     while (1)
@@ -28,7 +27,7 @@ int main(void)
 
         int i = 0;
 
-        /* Split line into words */
+        /* Split command into words */
         char *token = strtok(line, " \t");
 
         while (token != NULL && i < 63)
@@ -46,35 +45,50 @@ int main(void)
             continue;
         }
 
-        /* Exit command */
+        /* Exit ShellForge */
         if (strcmp(args[0], "exit") == 0)
         {
             break;
         }
 
-        /* Create child process */
+        /* Milestone 5: Directory Navigation */
+        if (strcmp(args[0], "cd") == 0)
+        {
+            if (args[1] == NULL)
+            {
+                fprintf(stderr, "shellforge: missing path parameter\n");
+            }
+            else
+            {
+                if (chdir(args[1]) != 0)
+                {
+                    perror("Directory change failed");
+                }
+            }
+
+            continue;
+        }
+
+        /* Create child process for external commands */
         pid_t pid = fork();
 
         if (pid == 0)
         {
             /* Child process */
-
             execvp(args[0], args);
 
             /* Runs only if execvp fails */
-            perror("Command execution error");
+            perror("Execution error");
             exit(1);
         }
         else if (pid > 0)
         {
             /* Parent process */
-
             waitpid(pid, NULL, 0);
         }
         else
         {
             /* fork() failed */
-
             perror("Fork creation error");
         }
     }
@@ -83,4 +97,3 @@ int main(void)
 
     return 0;
 }
-
