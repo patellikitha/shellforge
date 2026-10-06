@@ -2,67 +2,67 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Structure to store all words of the command */
+typedef struct {
+    char *args[64];
+    int count;
+} Command;
+
+/* Function to parse the input line */
+void parse_command(char *line, Command *cmd)
+{
+    cmd->count = 0;
+
+    char *token = strtok(line, " \t");
+
+    while (token != NULL && cmd->count < 63)
+    {
+        cmd->args[cmd->count] = token;
+        cmd->count++;
+
+        token = strtok(NULL, " \t");
+    }
+
+    cmd->args[cmd->count] = NULL;
+}
+
 int main(void)
 {
     char *line = NULL;
     size_t len = 0;
-    ssize_t nread;
 
-    char *args[64];
+    Command cmd;
 
     while (1)
     {
         printf("shellforge$ ");
         fflush(stdout);
 
-        nread = getline(&line, &len, stdin);
-
-        if (nread == -1)
+        if (getline(&line, &len, stdin) == -1)
         {
             break;
         }
 
-        if (nread > 0 && line[nread - 1] == '\n')
+        if (strlen(line) > 0 &&
+            line[strlen(line) - 1] == '\n')
         {
-            line[nread - 1] = '\0';
+            line[strlen(line) - 1] = '\0';
         }
 
-        /* Tokenizer */
-        int i = 0;
+        parse_command(line, &cmd);
 
-        char *token = strtok(line, " \t");
-
-        while (token != NULL && i < 63)
-        {
-            args[i] = token;
-            i++;
-
-            token = strtok(NULL, " \t");
-        }
-
-        /* Last element must be NULL */
-        args[i] = NULL;
-
-        /* Ignore empty input */
-        if (i == 0)
+        if (cmd.count == 0)
         {
             continue;
         }
 
-        /* Exit command */
-        if (strcmp(args[0], "exit") == 0)
+        if (strcmp(cmd.args[0], "exit") == 0)
         {
             break;
         }
 
-        /* Display command and arguments */
-        printf("Command detected: %s (Total args: %d)\n",
-               args[0], i - 1);
-
-        for (int j = 0; j < i; j++)
-        {
-            printf(" -> args[%d]: %s\n", j, args[j]);
-        }
+        printf("Structure Log -> command : %s | Arguments found: %d\n",
+               cmd.args[0], cmd.count - 1);
     }
 
     free(line);
